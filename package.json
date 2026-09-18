@@ -1,7 +1,7 @@
 {
   "name": "taskflow-backend",
   "version": "1.0.0",
-  "description": "Backend Projesi",
+  "description": "Backend Project for TaskFlow",
   "main": "index.js",
   "scripts": {
     "start": "node src/server.js",
