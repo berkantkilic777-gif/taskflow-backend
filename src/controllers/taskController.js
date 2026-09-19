@@ -17,6 +17,23 @@ const getAllTasks = (req, res) => {
     });
 };
 
+const getTaskById = (req, res) => {
+  const { id } = req.params;
+  const task = tasks.find(t => t.id === parseInt(id));
+
+  if (!task) {
+    return res.status(404).json({
+      success: false,
+      message: `Task with id ${id} not found`
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    data: task
+  });
+};
+
 const createTask = (req, res) => {
     const { title } = req.body;
     if(!title){
@@ -76,5 +93,6 @@ module.exports = {
     getAllTasks,
     createTask,
     updateTask,
+    getTaskById,
     deleteTask
 };
