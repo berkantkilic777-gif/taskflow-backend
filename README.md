@@ -5,6 +5,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)](https://www.postman.com/)
+[![REST API](https://img.shields.io/badge/REST_API-005571?style=for-the-badge&logo=fastapi&logoColor=white)](https://expressjs.com/)
 
 <br/>
 
@@ -17,20 +18,22 @@
 <h2 id="english">English</h2>
 
 ### Project Overview
-**TaskFlow** is a modular RESTful API built with Node.js and Express.js for managing team workflows, development tasks, and assignments. It features an in-memory data store, clean separation of concerns across layers, custom logging middleware, and comprehensive CRUD endpoints.
+TaskFlow is a modular, production-ready RESTful API developed with Node.js and Express.js designed for team workflow tracking, project assignment, and workload reporting. Built around a layered architectural design, the system features complete CRUD operations, custom request logging, input validation middleware, advanced search and pagination mechanics, and dynamic reporting services.
 
-### Key Features
-- **RESTful Architecture:** Follows semantic HTTP status codes (`200 OK`, `201 Created`, `400 Bad Request`, `404 Not Found`).
-- **Full CRUD Support:** Complete task lifecycle management (Create, Read All, Read by ID, Partial Update, and Delete).
-- **Custom Logging Middleware:** Logs every incoming request's timestamp (ISO format), HTTP method, and route URL to the console.
-- **Data Validation & Error Handling:** Validates payload parameters and handles missing resource exceptions cleanly.
-- **Modular Directory Structure:** Isolated layers for controllers, routes, and middlewares.
+### Core and Advanced Features
+- Core CRUD Operations: Comprehensive task lifecycle management (Create, Read All, Read by ID, Partial/Full Update, and Delete).
+- Custom Logging Middleware: Tracks and logs every incoming HTTP request's ISO timestamp, method, and URL.
+- Validation Middleware (Advanced): Intercepts POST requests to strictly validate task payloads (title requirement, allowed priority values) returning semantic 400 Bad Request responses.
+- Advanced Search and Filtering: Real-time keyword search across task titles and descriptions, status filtering, priority filtering, and assignee filtering.
+- Pagination and Sorting: Supports query pagination (`page`, `limit`) with metadata and timestamp sorting.
+- Analytical Reporting Services: Dedicated reporting endpoints delivering aggregated task statistics, pending counts, completion metrics, and priority distributions.
+- Architecture and Code Quality: Clean separation of concerns across controllers, routes, and middlewares with standard HTTP status conventions.
 
 ### Tech Stack
-- **Runtime:** Node.js
-- **Framework:** Express.js
-- **API Client:** Postman
-- **Dev Utility:** Nodemon
+- Runtime: Node.js
+- Framework: Express.js (v5.x)
+- API Client and Testing: Postman
+- Dev Tool: Nodemon
 
 ### Project Architecture
 ```text
@@ -45,10 +48,13 @@ taskflow-backend/
 │   └── 07-error-404.png
 ├── src/
 │   ├── controllers/
+│   │   ├── reportController.js
 │   │   └── taskController.js
 │   ├── middlewares/
-│   │   └── logger.js
+│   │   ├── logger.js
+│   │   └── validateTask.js
 │   ├── routes/
+│   │   ├── reportRoutes.js
 │   │   └── taskRoutes.js
 │   └── server.js
 ├── .gitignore
@@ -57,15 +63,33 @@ taskflow-backend/
 ```
 
 ### API Endpoints
+
+#### 1. Task Operations
 | Method | Endpoint | Description | Status Code |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/tasks` | Fetch all tasks | `200 OK` |
-| `GET` | `/api/tasks/:id` | Fetch task by specific ID | `200 OK` / `404 Not Found` |
-| `POST` | `/api/tasks` | Create a new task | `201 Created` / `400 Bad Request` |
-| `PUT` | `/api/tasks/:id` | Update task details | `200 OK` / `404 Not Found` |
-| `DELETE` | `/api/tasks/:id` | Delete task by ID | `200 OK` / `404 Not Found` |
+| GET | `/api/tasks` | Fetch all tasks (supports filtering, sorting & pagination) | 200 OK |
+| GET | `/api/tasks/:id` | Fetch task by specific ID | 200 OK / 404 Not Found |
+| GET | `/api/tasks/search?keyword=...` | Search tasks by keyword in title or description | 200 OK / 400 Bad Request |
+| GET | `/api/tasks/assignee/:name` | Fetch tasks assigned to a specific user | 200 OK |
+| POST | `/api/tasks` | Create a new task (validated by middleware) | 201 Created / 400 Bad Request |
+| PUT | `/api/tasks/:id` | Update task by ID | 200 OK / 404 Not Found |
+| DELETE | `/api/tasks/:id` | Delete task by ID | 200 OK / 404 Not Found |
 
-### Getting Started
+#### 2. Query Parameters (GET /api/tasks)
+- `status`: Filter by completion (`completed` or `pending`)
+- `priority`: Filter by priority level (`low`, `medium`, `high`)
+- `assignee`: Filter by username (e.g. `musa`, `berkant`)
+- `sort`: Sort tasks (`createdAt` or `-createdAt`)
+- `page` & `limit`: Paginate results (e.g. `?page=1&limit=2`)
+
+#### 3. Reporting Services
+| Method | Endpoint | Description | Status Code |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/reports/completed` | List completed tasks and count | 200 OK |
+| GET | `/api/reports/pending` | List pending tasks and count | 200 OK |
+| GET | `/api/reports/summary` | High-level summary, completion rates, and priority distribution | 200 OK |
+
+### Installation and Setup
 1. Clone the repository:
    ```bash
    git clone [https://github.com/berkantkilic777-gif/taskflow-backend.git](https://github.com/berkantkilic777-gif/taskflow-backend.git)
@@ -79,10 +103,10 @@ taskflow-backend/
    ```bash
    npm run dev
    ```
-   The server will start on `http://localhost:5000`.
+   Server runs on `http://localhost:5000`.
 
 ### Postman Verification
-Verified test results confirming endpoint functionality:
+Verified test results confirming baseline CRUD endpoint functionality:
 
 #### 1. Retrieve All Tasks (GET)
 ![Retrieve All Tasks](./screenshots/01-get-all-tasks.png)
@@ -110,20 +134,22 @@ Verified test results confirming endpoint functionality:
 <h2 id="turkce">Türkçe</h2>
 
 ### Proje Tanıtımı
-**TaskFlow**, yazılım ekiplerinin proje süreçlerini, iş listelerini ve görev sorumluluklarını takip etmek amacıyla Node.js ve Express.js kullanılarak geliştirilmiş bir RESTful API'dir. Bellek içi veri yönetimi, katmanlı mimari, özel logger middleware ve eksiksiz CRUD işlevselliği sunar.
+TaskFlow; yazılım ekiplerinin iş listelerini, görev atamalarını ve iş yükü durumlarını takip etmek amacıyla Node.js ve Express.js kullanılarak geliştirilmiş, üretime hazır ve modüler bir RESTful API'dir. Katmanlı mimari prensiplerine uygun olarak tasarlanan sistem; eksiksiz CRUD işlevselliği, özel istek loglama middleware'i, girdi doğrulama (validation) katmanı, gelişmiş arama/sayfalama özellikleri ve sistem geneli raporlama servisleri sunar.
 
-### Temel Özellikler
-- **RESTful Standartlar:** Anlamsal HTTP durum kodları (`200 OK`, `201 Created`, `400 Bad Request`, `404 Not Found`) ile tam uyum.
-- **Eksiksiz CRUD Döngüsü:** Görev oluşturma, tümünü listeleme, tekil ID ile sorgulama, güncelleme ve silme operasyonları.
-- **Özel Logger Middleware:** Gelen her HTTP isteğini zaman damgası (ISO formatı), istek metodu ve rota bilgisiyle konsola yazar.
-- **Hata ve İstisna Yönetimi:** Zorunlu alan (`title`) kontrolleri ve bulunamayan kaynaklar için açıklayıcı JSON yanıtları.
-- **Modüler Klasör Mimarisi:** Route, Controller ve Middleware katmanlarının birbirinden izole ayrımı.
+### Temel ve İleri Seviye Özellikler
+- Eksiksiz CRUD Döngüsü: Görev oluşturma, listeleme, tekil ID ile sorgulama, güncelleme ve silme operasyonları.
+- Özel Logger Middleware: Gelen her HTTP isteğini zaman damgası (ISO formatı), HTTP metodu ve rota bilgisiyle konsola yazar.
+- Doğrulama Middleware (Validation): Yeni görev ekleme isteklerinde zorunlu alan kontrolü (`title`) ve geçerli öncelik seviyesi (`priority`) denetimi yaparak geçersiz isteklerde anlamlı 400 Bad Request yanıtı döner.
+- Gelişmiş Arama ve Filtreleme: Görev başlığı ve açıklamasında anlık kelime arama (`/search`), duruma göre filtreleme (`status`), önceliğe göre filtreleme (`priority`) ve kullanıcı bazlı sorgulama (`assignee`).
+- Sayfalama ve Sıralama: Büyük veri setleri için sayfalama mekanizması (`page`, `limit`), sayfa metadataları ve tarih bazlı sıralama (`sort`).
+- Raporlama Servisleri: Tamamlanan, bekleyen ve tüm sistemin tamamlama yüzdesi ile öncelik dağılımını hesaplayan analitik rapor uç noktaları.
+- Temiz Mimari ve Standartlar: Controller, Route ve Middleware katmanlarının birbirinden izole ayrımı ve anlamsal HTTP durum kodları (`200`, `201`, `400`, `404`).
 
 ### Kullanılan Teknolojiler
-- **Çalışma Ortamı:** Node.js
-- **Web Çatısı:** Express.js
-- **API Test:** Postman
-- **Geliştirici Aracı:** Nodemon
+- Çalışma Ortamı: Node.js
+- Web Çatısı: Express.js (v5.x)
+- API Test Aracı: Postman
+- Geliştirici Aracı: Nodemon
 
 ### Proje Klasör Hiyerarşisi
 ```text
@@ -138,10 +164,13 @@ taskflow-backend/
 │   └── 07-error-404.png
 ├── src/
 │   ├── controllers/
+│   │   ├── reportController.js
 │   │   └── taskController.js
 │   ├── middlewares/
-│   │   └── logger.js
+│   │   ├── logger.js
+│   │   └── validateTask.js
 │   ├── routes/
+│   │   ├── reportRoutes.js
 │   │   └── taskRoutes.js
 │   └── server.js
 ├── .gitignore
@@ -150,13 +179,31 @@ taskflow-backend/
 ```
 
 ### API Uç Noktaları (Endpoints)
-| Metot | Uç Nokta | Açıklama | Başarı Durum Kodu |
+
+#### 1. Görev İşlemleri
+| Metot | Uç Nokta | Açıklama | Durum Kodu |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/tasks` | Tüm görevleri listeler | `200 OK` |
-| `GET` | `/api/tasks/:id` | ID'ye göre tekil görevi getirir | `200 OK` / `404 Not Found` |
-| `POST` | `/api/tasks` | Yeni bir görev oluşturur | `201 Created` / `400 Bad Request` |
-| `PUT` | `/api/tasks/:id` | Görev bilgilerini günceller | `200 OK` / `404 Not Found` |
-| `DELETE` | `/api/tasks/:id` | Görevi sistemden siler | `200 OK` / `404 Not Found` |
+| GET | `/api/tasks` | Tüm görevleri listeler (filtreleme, sıralama ve sayfalama destekler) | 200 OK |
+| GET | `/api/tasks/:id` | ID'ye göre tekil görevi getirir | 200 OK / 404 Not Found |
+| GET | `/api/tasks/search?keyword=...` | Başlık veya açıklamada anahtar kelime ile arama yapar | 200 OK / 400 Bad Request |
+| GET | `/api/tasks/assignee/:name` | Belirli bir kullanıcıya atanan görevleri listeler | 200 OK |
+| POST | `/api/tasks` | Yeni görev oluşturur (validation middleware denetimli) | 201 Created / 400 Bad Request |
+| PUT | `/api/tasks/:id` | Görev bilgilerini günceller | 200 OK / 404 Not Found |
+| DELETE | `/api/tasks/:id` | Görevi sistemden siler | 200 OK / 404 Not Found |
+
+#### 2. Sorgu Parametreleri (GET /api/tasks)
+- `status`: Görev durumuna göre filtreler (`completed` veya `pending`)
+- `priority`: Öncelik seviyesine göre filtreler (`low`, `medium`, `high`)
+- `assignee`: Görevliye göre filtreler (örn: `musa`, `berkant`)
+- `sort`: Tarihe göre sıralar (`createdAt` veya `-createdAt`)
+- `page` & `limit`: Sayfalama yapar (örn: `?page=1&limit=2`)
+
+#### 3. Raporlama Servisleri
+| Metot | Uç Nokta | Açıklama | Durum Kodu |
+| :--- | :--- | :--- | :--- |
+| GET | `/api/reports/completed` | Tamamlanan görev sayısını ve listesini döner | 200 OK |
+| GET | `/api/reports/pending` | Bekleyen görev sayısını ve listesini döner | 200 OK |
+| GET | `/api/reports/summary` | Toplam görev, tamamlanma yüzdesi ve öncelik dağılımını özetler | 200 OK |
 
 ### Kurulum ve Çalıştırma
 1. Projeyi yerel makinenize klonlayın:
@@ -172,10 +219,10 @@ taskflow-backend/
    ```bash
    npm run dev
    ```
-   Sunucu varsayılan olarak `http://localhost:5000` portunda çalışacaktır.
+   Sunucu `http://localhost:5000` portunda çalışacaktır.
 
 ### Postman Test Kanıtları
-Geliştirilen uç noktaların başarılı çalıştığını gösteren Postman test çıktıları:
+Temel CRUD uç noktalarının başarılı çalıştığını doğrulayan Postman test çıktıları:
 
 #### 1. Tüm Görevleri Listeleme (GET)
 ![Tüm Görevleri Listeleme](./screenshots/01-get-all-tasks.png)
